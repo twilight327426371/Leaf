@@ -1,11 +1,10 @@
 
-from leaf.model import Entry
+from leaf.model import Entry, Leaderboard
 from leaf import db
 
 class EntryThing(object):
 
-	RANK_SQL = """
-SELECT  eo.*, 
+	RANK_SQL = """SELECT  eo.*, 
         (
         SELECT  COUNT(ei.score) + 1
         FROM    entries ei
@@ -33,5 +32,22 @@ WHERE  lid=%%s eid =%%s"""
 
 	def save(self, entry):
 		return db.execute('INSERT INTO entries (eid, lid, score) VALUES (%s, %s, %s) \
-			ON DUPLICATE KEY UPDATE score=VALUES(score)', (entriy.leaderboard_id, entriy.entriy_id, entriy.score))
+			ON DUPLICATE KEY UPDATE score=VALUES(score)', 
+			(entriy.leaderboard_id, entriy.entriy_id, entriy.score))
 
+
+class LeaderboardThing(object):
+
+	def find(self, leaderboard_id):
+		data = db.query_one('SELECT lid, name FROM leaderboards WHERE lib=%s', (leaderboard_id,))
+		if data:
+			return self._load(data)
+
+	def _load(self, data):
+		return Leaderboard(*data)
+
+	def save(self, leaderboard):
+		if leaderboard.leaderboard_id:
+			return db.execute('INSERT INTO leaderboards (name) VALUES(%s)', leaderboard.name)
+		else:
+			pass
