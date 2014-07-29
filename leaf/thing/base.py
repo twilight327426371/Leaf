@@ -6,12 +6,11 @@ class EntryThing(object):
 
 	RANK_SQL = """SELECT  eo.*, 
         (
-        SELECT  COUNT(ei.score) + 1
+        SELECT  COUNT(ei.score) %s
         FROM    entries ei
         WHERE   %s
         ) AS rank
-FROM    entries eo 
-WHERE  lid=%%s eid =%%s"""
+FROM   entries eo"""
 
 	def __init__(self):
 		pass
@@ -22,10 +21,17 @@ WHERE  lid=%%s eid =%%s"""
 			return self._load(data)
 
 	def get_rank_by_eid(self, lid, eid, dense=False):
-		sql = self.RANK_SQL %('(ei.score, ei.eid) >= (eo.score, eo.eid)' if dense else 'ei.score > eo.score')
+		sql = self.RANK_SQL % ('', '(ei.score, ei.eid) >= (eo.score, eo.eid)') if dense else (' + 1', 'ei.score > eo.score')
+		sql += '\nWHERE  lid=%s eid =%s'
 		data = db.query_one(sql, (lid, eid))
 		if data:
 			return self._load(data)
+
+	def rank(self, leaderboard_id, limit=1000, offset=0, dense=False):
+		sql = self.RANK_SQL % ('', '(ei.score, ei.eid) >= (eo.score, eo.eid)') if dense else (' + 1', 'ei.score > eo.score')
+		sql += '\nWHERE lid=%s ORDER BY rank LIMIT %s, OFFSET %s'
+		res = db.query(sql, (leaderboard_id, limit, offset))
+		return [self._load(data) for data in res]
 
 	def _load(self, data):
 		return Entry(*data)
