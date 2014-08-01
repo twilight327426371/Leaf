@@ -8,7 +8,7 @@ class Leaderboard(object):
 		return self.leaderboard.leaderboard_id
 
     def rank_for_users(self, entry_ids, dense=False):
-        return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_ids , dense)
+        return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_ids, dense)
 
 	def rank_for_user(self, entry_id, dense=False):
 		return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_id, dense)

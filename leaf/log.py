@@ -1,5 +1,6 @@
 import logging
 
+
 def setdebug(debug=False):
     level = logging.DEBUG if debug else logging.INFO
     logging.basicConfig(level=level,
