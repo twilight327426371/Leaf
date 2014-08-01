@@ -7,9 +7,15 @@ class Leaderboard(object):
 	def leaderboard_id(self):
 		return self.leaderboard.leaderboard_id
 
-	def get_rank_by_eid(self, eid, dense=False):
-		return self.leaderboard.entrything.get_rank_by_eid(self.leaderboard_id, eid , dense)
+    def rank_for_users(self, entry_ids, dense=False):
+        return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_ids , dense)
 
+	def rank_for_user(self, entry_id, dense=False):
+		return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_id, dense)
 
-	def rank(self, limit=100, offset=0, dense=False):
-		return self.leaderboard.rank(self.leaderboard_id, limit, offset, dense)
+    def rank(self, limit=100, offset=0, dense=False):
+        return self.leaderboard.rank(self.leaderboard_id, limit, offset, dense)
+
+    @property
+    def total(self):
+        return self.leaderboard.total(self.leaderboard_id)
