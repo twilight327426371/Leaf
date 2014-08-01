@@ -42,6 +42,25 @@ FROM   entries eo"""
         sql += '\nWHERE  lid=%s AND eid =%s'
         return sql
 
+    def rank_at(self, leaderboard_id, rank, dense=False):
+        ranks = self.rank(leaderboard, 1, rank - 1, dense)
+        if ranks:
+            return ranks[0]
+
+    def rank(self, leaderboard_id, limit=1000, offset=0, dense=False):
+        sql = 'SELECT * FROM entries WHERE lid=%%s ORDER BY %s'
+        if dense:
+            sql = sql % ('score DESC, eid DESC',)
+        else:
+            sql = sql % ('score DESC',)
+
+        sql += ' LIMIT %s OFFSET %s'
+        res = db.query(sql, (leaderboard_id, limit, offset))
+        res = [self._load(data) for data in res]
+        if res:
+            self._rank_entries(res, dense, offset)
+        return res
+
     def _rank_entries(self, entries, dense=False, offset=0):
         rank = offset + 1
         prev_entry = entries[0]
@@ -69,6 +88,9 @@ FROM   entries eo"""
 			ON DUPLICATE KEY UPDATE score=VALUES(score)',
                           (entry.leaderboard_id, entry.entry_id, entry.score))
 
+    def delete(self, leaderboard_id, entry_id):
+        return db.execute('DELETE FROM entries WHERE lid=%s AND eid=%s', (leaderboard_id, entry_id))
+
 
 class LeaderboardThing(object):
 
@@ -87,3 +109,7 @@ class LeaderboardThing(object):
             return db.execute('INSERT INTO leaderboard (lid, name) VALUES (%s, %s) \
 			ON DUPLICATE KEY UPDATE name=VALUES(name)',
                               (leaderboard.leaderboard_id, leaderboard.name,))
+
+    def delete(self, leaderboard):
+        db.execute('DELETE FROM entries WHERE lid=%s', (leaderboard.leaderboard_id,))
+        db.execute('DELETE FROM leaderboards WHERE lid=%s', (leaderboard.leaderboard_id,))
