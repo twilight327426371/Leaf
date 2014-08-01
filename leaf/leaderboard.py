@@ -9,3 +9,7 @@ class Leaderboard(object):
 
 	def get_rank_by_eid(self, eid, dense=False):
 		return self.leaderboard.entrything.get_rank_by_eid(self.leaderboard_id, eid , dense)
+
+
+	def rank(self, limit=100, offset=0, dense=False):
+		return self.leaderboard.rank(self.leaderboard_id, limit, offset, dense)
