@@ -26,4 +26,14 @@ CREATE TABLE `entries` (
 ) ENGINE=InnoDB CHARSET=utf8;
 
 
+CREATE TABLE `score_buckets` (
+    
+    `lid` MEDIUMINT(8) unsigned NOT NULL,
+    `score` INT(11) unsigned NOT NULL,
+    `size` INT(11) unsigned NOT NULL,
+
+    KEY `leaderboard_score` (`lid`, `score`)
+
+) ENGINE=InnoDB CHARSET=utf8;
+
 SET @@character_set_client = @saved_cs_client;
