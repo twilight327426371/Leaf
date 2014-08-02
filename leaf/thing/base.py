@@ -7,9 +7,9 @@ class EntryThing(object):
 
     RANK_SQL = """SELECT  eo.*,
         (
-        SELECT  COUNT(ei.score) %s
+        SELECT  COUNT(%sei.score) %s
         FROM    entries ei
-        WHERE   %s
+        WHERE  eo.lid=ei.lid AND %s
         ) AS rank
 FROM   entries eo"""
 
@@ -21,12 +21,17 @@ FROM   entries eo"""
         if data:
             return self._load(data)
 
-    def rank_for_users(self, leaderboard_id, entry_ids, dense):
+    def find_by_score(self, leaderboard_id, score):
+        results = db.query('SELECT eid, lid, score FROM entries WHERE lid=%s AND score=%s', (leaderboard_id, score))
+        if results:
+            return [self._load(data) for data in results]
+
+    def rank_for_users(self, leaderboard_id, entry_ids, dense=False):
         """Get the rank for by users"""
         ranks = []
         sql = self._build_rank_sql(dense)
         for entry_id in entry_ids:
-            data = db.query_one(sql, leaderboard_id, entry_id)
+            data = db.query_one(sql, (leaderboard_id, entry_id))
             if data:
                 ranks.append(self._load(data))
         return ranks
@@ -38,21 +43,26 @@ FROM   entries eo"""
             return self._load(data)
 
     def _build_rank_sql(self, dense=False):
-        sql = self.RANK_SQL % (('', '(ei.score, ei.eid) >= (eo.score, eo.eid)') if dense else (' + 1', 'ei.score > eo.score'))
-        sql += '\nWHERE  lid=%s AND eid =%s'
+        sql = self.RANK_SQL % (('', '', '(ei.score, ei.eid) >= (eo.score, eo.eid)') if dense else ('DISTINCT ', ' + 1', 'ei.score > eo.score'))
+        sql += '\nWHERE lid=%s AND eid=%s'
         return sql
 
     def rank_at(self, leaderboard_id, rank, dense=False):
-        ranks = self.rank(leaderboard, 1, rank - 1, dense)
-        if ranks:
-            return ranks[0]
+        res = self.rank(leaderboard_id, 1, rank -1 , dense)
+        if res and not dense:
+            res = res.pop()
+            entries = self.find_by_score(leaderboard_id,res.score)
+            for entry in entries:
+                entry.rank = res.rank
+            return entries
+        return res
 
     def rank(self, leaderboard_id, limit=1000, offset=0, dense=False):
-        sql = 'SELECT * FROM entries WHERE lid=%%s ORDER BY %s'
+        sql = 'SELECT * FROM entries WHERE lid=%s '
         if dense:
-            sql = sql % ('score DESC, eid DESC',)
+            sql += 'ORDER BY score DESC, eid DESC'
         else:
-            sql = sql % ('score DESC',)
+            sql += 'GROUP BY score ORDER BY score DESC'
 
         sql += ' LIMIT %s OFFSET %s'
         res = db.query(sql, (leaderboard_id, limit, offset))
