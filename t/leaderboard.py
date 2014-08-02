@@ -67,13 +67,13 @@ class BaseEntryThingTest(unittest.TestCase):
         es = self.e.rank(2, 3, 4)
         self.assertEqual(len(es), 3)
         e = es[0]
-        self.assertEquals((e.entry_id, e.score, e.rank), (5, 31, 5))
+        self.assertEquals((e.entry_id, e.score, e.rank), (5, 31, 3))
 
         es = self.e.rank(2, 10)
         self.assertEqual(len(es), 10)
         self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (1, 33, 1))
         self.assertEquals((es[1].score, es[1].rank), (32, 2))
-        self.assertEquals((es[2].score, es[2].rank), (31, 3))
+        self.assertEquals((es[2].score, es[2].rank), (32, 2))
 
         es = self.e.rank(2, 10, 0, True)
         self.assertEqual(len(es), 10)

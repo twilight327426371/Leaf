@@ -62,17 +62,21 @@ FROM   entries eo"""
         if dense:
             sql += 'ORDER BY score DESC, eid DESC'
         else:
-            sql += 'GROUP BY score ORDER BY score DESC'
+            sql += 'GROUP BY score, eid ORDER BY score DESC'
 
         sql += ' LIMIT %s OFFSET %s'
         res = db.query(sql, (leaderboard_id, limit, offset))
         res = [self._load(data) for data in res]
         if res:
+            if not dense:
+                entry = self.rank_for_user(leaderboard_id, res[0].entry_id, dense)
+                offset = entry.rank
+            else:
+                offset += 1
             self._rank_entries(res, dense, offset)
         return res
 
-    def _rank_entries(self, entries, dense=False, offset=0):
-        rank = offset + 1
+    def _rank_entries(self, entries, dense=False, rank=0):
         prev_entry = entries[0]
         prev_entry.rank = rank
         for e in entries[1:]:
