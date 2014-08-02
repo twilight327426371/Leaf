@@ -88,22 +88,23 @@ FROM   entries eo"""
             prev_entry = e
 
     def around_me(self, leaderboard_id, entry_id, bound=2, dense=False):
-        me = self.rank_for_user(entry_id)
-        lower = self.get_lower_arround(leaderboard_id, entry, bound, dense)
-        upper = self.get_upper_arround(leaderboard_id, entry, bound, dense)
-        return upper + me + lower
+        me = ghost = self.rank_for_user(leaderboard_id, entry_id, dense)
+        if not dense:
+            ghost = self.rank_for_user(leaderboard_id, entry_id, True)
+        lower = self.get_lower_around(ghost, bound, dense)
+        upper = self.get_upper_around(ghost, bound, dense)
+        return upper + [me] + lower
 
-    def get_lower_arround(self, entry, bound, dense):
-        if dense:
-            return self.rank(entry.leaderboard_id, bound, entry.rank + 1)
-        return []
+    def get_lower_around(self, entry, bound, dense):
+        return self.rank(entry.leaderboard_id, bound, entry.rank, dense)
         
-    def get_upper_arround(self, leaderboard_id, entry, bound, dense):
-        if dense:
-            return self.rank(entry.leaderboard_id, bound, entry.rank - bound)
-        return []
-
-
+    def get_upper_around(self, entry, bound, dense):
+        offset = max(0, entry.rank - bound - 1)
+        bound = min(bound, entry.rank)
+        if bound == 1:
+            return []
+        return self.rank(entry.leaderboard_id, bound, offset, dense)
+ 
     def total(self, leaderboard_id):
         data = db.query_one('SELECT COUNT(1) FROM entries WHERE lid=%s', (leaderboard_id,))
         return data[0]

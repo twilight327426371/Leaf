@@ -86,6 +86,23 @@ class BaseEntryThingTest(unittest.TestCase):
         self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (4, 32, 2))
         self.assertEquals((es[6].entry_id, es[6].score, es[6].rank), (10, 30, 8))
 
+    def test_around_me(self):
+        es = self.e.around_me(2, 1)
+        self.assertEqual(len(es), 3)
+        self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (1, 33, 1))
+        self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (2, 32, 2))
+        self.assertEquals((es[2].entry_id, es[2].score, es[2].rank), (3, 32, 2))
+
+        es = self.e.around_me(2, 1, dense=True)
+        self.assertEqual(len(es), 3)
+        self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (1, 33, 1))
+        self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (4, 32, 2))
+        self.assertEquals((es[2].entry_id, es[2].score, es[2].rank), (3, 32, 3))
+
+        es = self.e.around_me(2, 10)
+        self.assertEqual(len(es), 5)
+
+
     def test_total(self):
         total = self.e.total(2)
         self.assertEqual(100, total)
