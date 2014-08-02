@@ -27,12 +27,15 @@ CREATE TABLE `entries` (
 
 
 CREATE TABLE `score_buckets` (
-    
     `lid` MEDIUMINT(8) unsigned NOT NULL,
     `score` INT(11) unsigned NOT NULL,
     `size` INT(11) unsigned NOT NULL,
+    `from_rank` INT(11) unsigned NOT NULL,
+    `to_rank` INT(11) unsigned NOT NULL,
+    `dense` INT(11) unsigned NOT NULL,
 
-    KEY `leaderboard_score` (`lid`, `score`)
+   PRIMARY KEY `leaderboard_score` (`lid`, `score`),
+   KEY `rank` (`from_rank`, `to_rank`)
 
 ) ENGINE=InnoDB CHARSET=utf8;
 
