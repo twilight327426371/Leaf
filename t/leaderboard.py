@@ -16,7 +16,7 @@ class EntryThingTraitTest(unittest.TestCase):
 
     def setUp(self):
         data.up(lid=2)
-        self.e = EntryThing()
+        self.e = EntryThingTrait()
 
     def tearDown(self):
         data.down(lid=2)
@@ -36,6 +36,11 @@ class EntryThingTraitTest(unittest.TestCase):
         self.assertEqual(len(es), 1)
         e = es[0]
         self.assertEquals((e.entry_id, e.score, e.rank), (1, 33, None))
+
+    def test_find_by_entry_ids(self):
+        es = self.e.find_by_entry_ids(2, [11, 13])
+        self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (11, 29, None))
+        self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (13, 29, None))
 
     def test_save(self):
         # on dup and update

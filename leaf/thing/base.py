@@ -12,8 +12,12 @@ class EntryThingTrait(object):
 
     def find_by_score(self, leaderboard_id, score):
         results = db.query('SELECT eid, lid, score FROM entries WHERE lid=%s AND score=%s', (leaderboard_id, score))
-        if results:
-            return [self._load(data) for data in results]
+        return [self._load(data) for data in results]
+
+    def find_by_entry_ids(self, leaderboard_id, entry_ids):
+        sql = 'SELECT eid, lid, score FROM entries WHERE lid=%%s AND  eid IN (%s)' % (', '.join([str(_) for _ in entry_ids]))
+        results = db.query(sql, (leaderboard_id, ))
+        return [self._load(data) for data in results]
 
     def _load(self, data):
         return Entry(*data)
