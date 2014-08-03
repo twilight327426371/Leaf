@@ -17,21 +17,39 @@ class BucketEntryThing(EntryThingTrait):
     def rank_for_user(self, leaderboard_id, entry_id, dense=False):
         entry = self.find(leaderboard_id, entry_id)
         if entry:
-            if not dense:
-                data = db.query_one('SELECT dense FROM score_buckets WHERE lid=%s AND score=%s', (leaderboard_id, entry.score))
-                entry.rank = data[0]
-            else:
+            if dense:
                 data  = db.query_one('SELECT from_rank FROM score_buckets WHERE lid=%s AND score=%s', (leaderboard_id, entry.score))
                 from_rank = data[0] 
-                rank = db.query_one('SELECT  COUNT(eid) as rank FROM  entries WHERE lid=%s AND eid>%s AND score=%s', 
+                rank = db.query_one('SELECT COUNT(eid) as rank FROM entries WHERE lid=%s AND eid>%s AND score=%s', 
                     (leaderboard_id, entry_id, entry.score))[0]
                 entry.rank = from_rank + rank 
+            else:
+                data = db.query_one('SELECT dense FROM score_buckets WHERE lid=%s AND score=%s', (leaderboard_id, entry.score))
+                entry.rank = data[0]      
         return entry
-
 
     def rank_for_users(self, leaderboard_id, entry_ids, dense=False):
         return [self.rank_for_user(leaderboard_id, entry_id, dense) for entry_id in entry_ids]
 
+    def rank_at(self, leaderboard_id, rank, dense=False):
+        if dense:
+            data  = db.query_one('SELECT from_rank, to_rank, score FROM score_buckets WHERE lid=%s AND from_rank <= %s AND %s <= to_rank', 
+                (leaderboard_id, rank, rank))
+            res = db.query('SELECT * FROM entries WHERE lid=%s AND score=%s ORDER BY score DESC, eid DESC LIMIT 1 OFFSET %s',
+                (leaderboard_id, data[2], rank - data[0]))
+            entries = [self._load(data) for data in res]
+            for entry in entries:
+                entry.rank = rank
+        else:
+            score = None
+            data = db.query_one('SELECT score FROM score_buckets WHERE lid=%s AND from_rank <= %s AND %s <= to_rank', 
+                (leaderboard_id, rank, rank))
+            if data:
+                score = data[0]
+                entries = self.find_by_score(leaderboard_id, score)
+                for entry in entries:
+                    entry.rank = rank
+        return entries
 
     def sort(self, leaderboard_id, chunk_block=CHUNK_BLOCK):
         start_time = time.time()

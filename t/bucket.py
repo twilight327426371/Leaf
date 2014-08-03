@@ -38,5 +38,16 @@ class EntryThingTraitTest(unittest.TestCase):
         self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (11, 29, 13))
         self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (13, 29, 11))
 
+    def test_rank_at(self):
+        e = self.e.rank_at(2, 11, dense=True)
+        self.assertEqual(len(e), 1)
+        self.assertEquals((e[0].entry_id, e[0].score, e[0].rank), (13, 29, 11))
+
+        es = self.e.rank_at(2, 2)
+        self.assertEqual(len(es), 3)
+        self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (2, 32, 2))
+        self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (3, 32, 2))
+        self.assertEquals((es[2].entry_id, es[2].score, es[2].rank), (4, 32, 2))
+
 if __name__ == '__main__':
     unittest.main()
