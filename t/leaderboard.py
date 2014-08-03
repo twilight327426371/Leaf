@@ -2,7 +2,7 @@ from leaf import db
 
 from leaf import log
 from leaf.thing.base import EntryThing
-
+from leaf.model import Entry
 
 import unittest
 
@@ -24,6 +24,10 @@ class BaseEntryThingTest(unittest.TestCase):
     def test_find(self):
         e = self.e.find(2, 11)
         self.assertEquals((e.entry_id, e.score, e.rank), (11, 29, None))
+
+        # not exists
+        self.assertEqual(self.e.find(2, 10000), None)
+        self.assertEqual(self.e.find(3, 10000), None)
 
     def test_find_by_score(self):
         es = self.e.find_by_score(2, 29)
@@ -57,11 +61,15 @@ class BaseEntryThingTest(unittest.TestCase):
         self.assertEqual(sql, 'SELECT  eo.*,\n        (\n        SELECT  COUNT(ei.score) \n        FROM    entries ei\n        WHERE  eo.lid=ei.lid AND (ei.score, ei.eid) >= (eo.score, eo.eid)\n        ) AS rank\nFROM   entries eo\nWHERE lid=%s AND eid=%s')
 
     def test_rank_at(self):
-        e = self.e.rank_at(2, 11, True)
+        e = self.e.rank_at(2, 11, dense=True)
+        self.assertEqual(len(e), 1)
         self.assertEquals((e[0].entry_id, e[0].score, e[0].rank), (13, 29, 11))
 
-        e = self.e.rank_at(2, 2)
-        self.assertEqual(len(e), 3)
+        es = self.e.rank_at(2, 2)
+        self.assertEqual(len(es), 3)
+        self.assertEquals((es[0].entry_id, es[0].score, es[0].rank), (2, 32, 2))
+        self.assertEquals((es[1].entry_id, es[1].score, es[1].rank), (3, 32, 2))
+        self.assertEquals((es[2].entry_id, es[2].score, es[2].rank), (4, 32, 2))
 
     def test_rank(self):
         es = self.e.rank(2, 3, 4)
@@ -101,6 +109,24 @@ class BaseEntryThingTest(unittest.TestCase):
 
         es = self.e.around_me(2, 10)
         self.assertEqual(len(es), 5)
+
+    def test_save(self):
+        # on dup and update
+        entry = Entry(1, 2, 34)
+        self.e.save(entry)
+        e = self.e.find(2, 1)
+        self.assertEqual(entry.score, e.score)
+
+        # insert a new entry
+        new_entry = Entry(101, 2, 34)
+        self.e.save(new_entry)
+        e = self.e.find(2, 101)
+        self.assertEquals((e.entry_id, e.score), (new_entry.entry_id, e.score))
+
+    def test_delete(self):
+        self.e.delete(2, 1)
+        entry = self.e.find(2, 1)
+        self.assertEqual(entry, None)
 
 
     def test_total(self):

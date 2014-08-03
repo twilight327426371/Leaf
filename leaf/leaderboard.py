@@ -1,11 +1,11 @@
 class Leaderboard(object):
 
-	def __init__(self, leaderboard):
-		self.leaderboard = leaderboard
+    def __init__(self, leaderboard):
+        self.leaderboard = leaderboard
 
-	@property
-	def leaderboard_id(self):
-		return self.leaderboard.leaderboard_id
+    @property
+    def leaderboard_id(self):
+        return self.leaderboard.leaderboard_id
 
     def rank_for_users(self, entry_ids, dense=False):
         return self.leaderboard.entrything.rank_for_user(self.leaderboard_id, entry_ids, dense)

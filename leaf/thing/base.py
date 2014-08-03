@@ -115,7 +115,7 @@ FROM   entries eo"""
     def save(self, entry):
         return db.execute('INSERT INTO entries (eid, lid, score) VALUES (%s, %s, %s) \
 			ON DUPLICATE KEY UPDATE score=VALUES(score)',
-                          (entry.leaderboard_id, entry.entry_id, entry.score))
+                          (entry.entry_id, entry.leaderboard_id, entry.score))
 
     def delete(self, leaderboard_id, entry_id):
         return db.execute('DELETE FROM entries WHERE lid=%s AND eid=%s', (leaderboard_id, entry_id))
@@ -135,9 +135,8 @@ class LeaderboardThing(object):
         if leaderboard.leaderboard_id:
             return db.execute('INSERT INTO leaderboards (name) VALUES(%s)', leaderboard.name)
         else:
-            return db.execute('INSERT INTO leaderboard (lid, name) VALUES (%s, %s) \
-			ON DUPLICATE KEY UPDATE name=VALUES(name)',
-                              (leaderboard.leaderboard_id, leaderboard.name,))
+            return db.execute('INSERT INTO leaderboard (lid, name) VALUES (%s, %s) ON DUPLICATE KEY UPDATE name=VALUES(name)',
+                (leaderboard.leaderboard_id, leaderboard.name,))
 
     def delete(self, leaderboard):
         db.execute('DELETE FROM entries WHERE lid=%s', (leaderboard.leaderboard_id,))
