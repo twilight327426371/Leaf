@@ -4,7 +4,7 @@ import unittest
 
 class EntryTest(unittest.TestCase):
 
-    def test_entry_new(self):
+    def test_new(self):
         e = Entry(2, 1, 12)
         self.assertEqual((e.leaderboard_id, e.entry_id, e.score, e.rank), (1, 2, 12, None))
         e = Entry(2, 1, 12, 2)
@@ -17,7 +17,7 @@ class EntryTest(unittest.TestCase):
 
 class LeaderboardTest(unittest.TestCase):
 
-    def test_entry_new(self):
+    def test_new(self):
         lb = Leaderboard('test', 1)
         self.assertEqual((lb.name, lb.leaderboard_id), ('test', 1))
         lb = Leaderboard('test')

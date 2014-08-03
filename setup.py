@@ -9,7 +9,7 @@ setup(
     author = "Thomas Huang",
     description = "Leaderboard System",
     license = "MIT",
-    keywords = "WSGI",
+    keywords = "Leaderboard",
     url='https://github.com/thomashuang/Leaf',
     long_description=open('README.md').read(),
     packages = ['leaf', 'leaf.model', 'leaf.thing'],
