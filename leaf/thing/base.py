@@ -3,7 +3,34 @@ from leaf.model import Entry, Leaderboard
 from leaf import db
 
 
-class EntryThing(object):
+class EntryThingTrait(object):
+
+    def find(self, lid, eid):
+        data = db.query_one('SELECT eid, lid, score FROM entries WHERE lid=%s AND eid=%s', (lid, eid))
+        if data:
+            return self._load(data)
+
+    def find_by_score(self, leaderboard_id, score):
+        results = db.query('SELECT eid, lid, score FROM entries WHERE lid=%s AND score=%s', (leaderboard_id, score))
+        if results:
+            return [self._load(data) for data in results]
+
+    def _load(self, data):
+        return Entry(*data)
+
+    def save(self, entry):
+        return db.execute('INSERT INTO entries (eid, lid, score) VALUES (%s, %s, %s) \
+            ON DUPLICATE KEY UPDATE score=VALUES(score)',
+                          (entry.entry_id, entry.leaderboard_id, entry.score))
+
+    def delete(self, leaderboard_id, entry_id):
+        return db.execute('DELETE FROM entries WHERE lid=%s AND eid=%s', (leaderboard_id, entry_id))
+
+    def total(self, leaderboard_id):
+        data = db.query_one('SELECT COUNT(1) FROM entries WHERE lid=%s', (leaderboard_id,))
+        return data[0]
+
+class EntryThing(EntryThingTrait):
 
     RANK_SQL = """SELECT  eo.*,
         (
@@ -15,16 +42,6 @@ FROM   entries eo"""
 
     def __init__(self):
         pass
-
-    def find(self, lid, eid):
-        data = db.query_one('SELECT eid, lid, score FROM entries WHERE lid=%s AND eid=%s', (lid, eid))
-        if data:
-            return self._load(data)
-
-    def find_by_score(self, leaderboard_id, score):
-        results = db.query('SELECT eid, lid, score FROM entries WHERE lid=%s AND score=%s', (leaderboard_id, score))
-        if results:
-            return [self._load(data) for data in results]
 
     def rank_for_users(self, leaderboard_id, entry_ids, dense=False):
         """Get the rank for by users"""
@@ -104,21 +121,6 @@ FROM   entries eo"""
         if bound == 1:
             return []
         return self.rank(entry.leaderboard_id, bound, offset, dense)
- 
-    def total(self, leaderboard_id):
-        data = db.query_one('SELECT COUNT(1) FROM entries WHERE lid=%s', (leaderboard_id,))
-        return data[0]
-
-    def _load(self, data):
-        return Entry(*data)
-
-    def save(self, entry):
-        return db.execute('INSERT INTO entries (eid, lid, score) VALUES (%s, %s, %s) \
-			ON DUPLICATE KEY UPDATE score=VALUES(score)',
-                          (entry.entry_id, entry.leaderboard_id, entry.score))
-
-    def delete(self, leaderboard_id, entry_id):
-        return db.execute('DELETE FROM entries WHERE lid=%s AND eid=%s', (leaderboard_id, entry_id))
 
 
 class LeaderboardThing(object):

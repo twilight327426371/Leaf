@@ -1,7 +1,7 @@
 from leaf import db
 
 from leaf import log
-from leaf.thing.base import EntryThing
+from leaf.thing.base import EntryThing, EntryThingTrait
 from leaf.model import Entry
 
 import unittest
@@ -12,7 +12,7 @@ log.setdebug(True)
 db.setup('localhost', 'test', 'test', 'leaf', pool_opt={'minconn': 3, 'maxconn': 10})
 
 
-class BaseEntryThingTest(unittest.TestCase):
+class EntryThingTraitTest(unittest.TestCase):
 
     def setUp(self):
         data.up(lid=2)
@@ -20,7 +20,7 @@ class BaseEntryThingTest(unittest.TestCase):
 
     def tearDown(self):
         data.down(lid=2)
-
+        
     def test_find(self):
         e = self.e.find(2, 11)
         self.assertEquals((e.entry_id, e.score, e.rank), (11, 29, None))
@@ -36,6 +36,38 @@ class BaseEntryThingTest(unittest.TestCase):
         self.assertEqual(len(es), 1)
         e = es[0]
         self.assertEquals((e.entry_id, e.score, e.rank), (1, 33, None))
+
+    def test_save(self):
+        # on dup and update
+        entry = Entry(1, 2, 34)
+        self.e.save(entry)
+        e = self.e.find(2, 1)
+        self.assertEqual(entry.score, e.score)
+
+        # insert a new entry
+        new_entry = Entry(101, 2, 34)
+        self.e.save(new_entry)
+        e = self.e.find(2, 101)
+        self.assertEquals((e.entry_id, e.score), (new_entry.entry_id, e.score))
+
+    def test_delete(self):
+        self.e.delete(2, 1)
+        entry = self.e.find(2, 1)
+        self.assertEqual(entry, None)
+
+    def test_total(self):
+        total = self.e.total(2)
+        self.assertEqual(100, total)
+
+
+class BaseEntryThingTest(unittest.TestCase):
+
+    def setUp(self):
+        data.up(lid=2)
+        self.e = EntryThing()
+
+    def tearDown(self):
+        data.down(lid=2)
 
     def test_rank_for_user(self):
         e = self.e.rank_for_user(2, 11)
@@ -109,29 +141,6 @@ class BaseEntryThingTest(unittest.TestCase):
 
         es = self.e.around_me(2, 10)
         self.assertEqual(len(es), 5)
-
-    def test_save(self):
-        # on dup and update
-        entry = Entry(1, 2, 34)
-        self.e.save(entry)
-        e = self.e.find(2, 1)
-        self.assertEqual(entry.score, e.score)
-
-        # insert a new entry
-        new_entry = Entry(101, 2, 34)
-        self.e.save(new_entry)
-        e = self.e.find(2, 101)
-        self.assertEquals((e.entry_id, e.score), (new_entry.entry_id, e.score))
-
-    def test_delete(self):
-        self.e.delete(2, 1)
-        entry = self.e.find(2, 1)
-        self.assertEqual(entry, None)
-
-
-    def test_total(self):
-        total = self.e.total(2)
-        self.assertEqual(100, total)
 
 
 if __name__ == '__main__':
