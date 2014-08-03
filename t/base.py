@@ -147,6 +147,5 @@ class BaseEntryThingTest(unittest.TestCase):
         es = self.e.around_me(2, 10)
         self.assertEqual(len(es), 5)
 
-
 if __name__ == '__main__':
     unittest.main()
