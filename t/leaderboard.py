@@ -8,7 +8,7 @@ import unittest
 
 import data
 
-log.setdebug(True)
+#log.setdebug(True)
 db.setup('localhost', 'test', 'test', 'leaf', pool_opt={'minconn': 3, 'maxconn': 10})
 
 
@@ -88,9 +88,9 @@ class BaseEntryThingTest(unittest.TestCase):
 
     def test__build_rank_sql(self):
         sql = self.e._build_rank_sql()
-        self.assertEqual(sql, 'SELECT  eo.*,\n        (\n        SELECT  COUNT(DISTINCT ei.score)  + 1\n        FROM    entries ei\n        WHERE  eo.lid=ei.lid AND ei.score > eo.score\n        ) AS rank\nFROM   entries eo\nWHERE lid=%s AND eid=%s')
+        self.assertEqual(sql, 'SELECT  eo.*,\n        (\n        SELECT  COUNT(DISTINCT ei.score)  + 1\n        FROM    entries ei\n        WHERE  eo.lid=ei.lid AND ei.score > eo.score\n        ) AS rank\nFROM   entries eo')
         sql = self.e._build_rank_sql(True)
-        self.assertEqual(sql, 'SELECT  eo.*,\n        (\n        SELECT  COUNT(ei.score) \n        FROM    entries ei\n        WHERE  eo.lid=ei.lid AND (ei.score, ei.eid) >= (eo.score, eo.eid)\n        ) AS rank\nFROM   entries eo\nWHERE lid=%s AND eid=%s')
+        self.assertEqual(sql, 'SELECT  eo.*,\n        (\n        SELECT  COUNT(ei.score) \n        FROM    entries ei\n        WHERE  eo.lid=ei.lid AND (ei.score, ei.eid) >= (eo.score, eo.eid)\n        ) AS rank\nFROM   entries eo')
 
     def test_rank_at(self):
         e = self.e.rank_at(2, 11, dense=True)

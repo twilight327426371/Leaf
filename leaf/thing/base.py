@@ -45,23 +45,20 @@ FROM   entries eo"""
 
     def rank_for_users(self, leaderboard_id, entry_ids, dense=False):
         """Get the rank for by users"""
-        ranks = []
         sql = self._build_rank_sql(dense)
-        for entry_id in entry_ids:
-            data = db.query_one(sql, (leaderboard_id, entry_id))
-            if data:
-                ranks.append(self._load(data))
-        return ranks
+        sql += '\nWHERE lid=%s AND eid IN (' + ', '.join([str(_) for _ in entry_ids]) + ')'
+        results = db.query(sql, (leaderboard_id,))
+        return [self._load(data) for data in results]
 
     def rank_for_user(self, lid, eid, dense=False):
         sql = self._build_rank_sql(dense)
+        sql += '\nWHERE lid=%s AND eid=%s'
         data = db.query_one(sql, (lid, eid))
         if data:
             return self._load(data)
 
     def _build_rank_sql(self, dense=False):
         sql = self.RANK_SQL % (('', '', '(ei.score, ei.eid) >= (eo.score, eo.eid)') if dense else ('DISTINCT ', ' + 1', 'ei.score > eo.score'))
-        sql += '\nWHERE lid=%s AND eid=%s'
         return sql
 
     def rank_at(self, leaderboard_id, rank, dense=False):
