@@ -39,4 +39,17 @@ CREATE TABLE `score_buckets` (
 
 ) ENGINE=InnoDB CHARSET=utf8;
 
+
+CREATE TABLE `tree_buckets` (
+    `size` INT(11) unsigned NOT NULL,
+    `lid` MEDIUMINT(8) unsigned NOT NULL,
+    `from_score` INT(11) unsigned NOT NULL,
+    `to_score` INT(11) unsigned NOT NULL,
+    `level` INT(11) NOT NULL,
+
+   
+   KEY `leaderboard_score` (`lid`, `from_score`, `to_score`)
+) ENGINE=InnoDB CHARSET=utf8;
+
+
 SET @@character_set_client = @saved_cs_client;
