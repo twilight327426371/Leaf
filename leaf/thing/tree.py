@@ -23,7 +23,7 @@ class TreeBucketEntryThing(EntryThingTrait):
             LOGGER.info('Possibly not found Leaderboard:%d', leaderboard_id)
             return
         self.clear_buckets(leaderboard_id)
-        self.max_score = res[0] 
+        self.max_score = res[0] + 1
         self.min_score = res[1]
         from_score, to_score = 0, self._to_score(self.max_score)
         self._sort_slice(leaderboard_id, from_score, to_score)
@@ -50,7 +50,7 @@ class TreeBucketEntryThing(EntryThingTrait):
             else:
                 self._sort_slice(leaderboard_id, middle, to_score, abs(level) + 1)
 
-    def _process_buckets(self, leaderboard_id, from_score, to_score, level):
+    def _process_buckets(self, leaderboard_id, from_score, to_score, from_rank, to_rank level):
         if from_score != self.min_score and to_score > self.max_score:
             return
         to_score = min(self.max_score, to_score)
@@ -74,14 +74,14 @@ class TreeBucketEntryThing(EntryThingTrait):
         sql = 'INSERT INTO tree_buckets(size, lid, from_score, to_score, level) VALUES '
         rows = []
         for bucket in self.buckets:
-            rows.append('(%d, %d, %d, %d, %d)' % (bucket.size,
-                                                  bucket.lid, bucket.from_score, bucket.to_score, bucket.level))
+            rows.append('(%d, %d, %d, %d, %d, %d, %d)' % (bucket.size,
+                bucket.lid, bucket.from_score, bucket.to_score, bucket.level, bucket.from_rank, bucket.to_rank))
         db.execute(sql + ','.join(rows))
         self.buckets = []
 
 
 #'from_rank', 'to_rank', 'dense'
-TreeBucket = namedtuple('TreeBucket', ['size', 'lid', 'from_score', 'to_score', 'level'])
+TreeBucket = namedtuple('TreeBucket', ['size', 'lid', 'from_score', 'to_score', 'level', 'from_rank', 'to_rank'])
 
 if __name__ == '__main__':
     from leaf import log
